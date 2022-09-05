@@ -1,0 +1,34 @@
+version: '3.6'
+services:
+    vncserver:
+        build:
+            context: .
+            dockerfile: ./Dockerfile.lxde
+        restart: ${DOCKER_RESTART:-no}
+        cap_add:
+            - SYS_ADMIN
+        ports:
+            - ${DOCKER_XRDP_PORT:-3389}:3389
+            - 5900:5900
+            - 5901:5901
+            - 5902:5902
+            - 5903:5903
+        volumes:
+            - /dev/shm:/dev/shm
+            - './tmp/export:/tmp/export'
+            - 'chrome_volume:/tmp/chrome'
+        environment:
+            - VNC_PASSWORD=${VNC_PASSWORD:-password}
+            - RESOLUTION=${VNC_RESOLUTION:-1920x1080}
+            - USER=${VNC_USER:-ubuntu}
+            - PASSWD=${VNC_PASSWD:-password1}
+        tty: true
+networks:
+    default:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 192.168.10.0/27
+volumes:
+    chrome_volume:
