@@ -4,6 +4,9 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile.lxde
+            args:
+                - VNC_USER=${VNC_USER:-ubuntu}
+                - VNC_PASSWD=${VNC_PASSWD:-password}
         restart: ${DOCKER_RESTART:-no}
         cap_add:
             - SYS_ADMIN

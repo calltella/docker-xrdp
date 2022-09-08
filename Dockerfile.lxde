@@ -4,27 +4,46 @@ FROM tukiyo3/xrdp:core
 RUN pkgadd.sh lxde-core openbox-lxde-session lxterminal
 RUN sed -i -e 's/openbox-session/startlxde/g' /etc/skel/.xsession
 
-# 以下は好みで
+# tightvncserver
 RUN pkgadd.sh \
-      vim wget \
-      ca-certificates fonts-liberation libnspr4 libnss3 xdg-utils \
-      gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal xfonts-base tightvncserver
+    vim wget \
+    ca-certificates fonts-liberation libnspr4 libnss3 xdg-utils mozc-utils-gui \
+    gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal xfonts-base tightvncserver
 
 # Chrome
-RUN echo $HOME
 RUN cd /tmp \
-    && wget --no-check-certificate https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && wget -q --no-check-certificate https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && dpkg -i google-chrome-stable_current_amd64.deb
 
 RUN sed -i "s/\/usr\/bin\/google-chrome-stable.%U/& --user-data-dir=\/tmp\/chrome/g" /usr/share/applications/google-chrome.desktop
 
+# Application
+RUN pkgadd.sh \
+    gnote xpad
+
+ARG VNC_USER=ubuntu
+ARG VNC_PASSWD=password
+RUN groupadd -g 1000 ${VNC_USER} && \
+    useradd -m -s /bin/bash -u 1000 -g 1000 -G sudo ${VNC_USER} && \
+    echo ${VNC_USER}:${VNC_PASSWD} | chpasswd && \
+    echo "${VNC_USER}   ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
 # コンテナ起動時のスクリプト
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+# COPY entrypoint.sh /usr/local/bin/
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+# ENTRYPOINT ["entrypoint.sh"]
 
 # ADD xstartup /root/.vnc/xstartup
-#ADD passwd /home/ubuntu/.vnc/passwd
+# USER ${VNC_USER}
+ADD passwd /home/${VNC_USER}/.vnc/passwd
+RUN chmod 600 /home/${VNC_USER}/.vnc/passwd
+ADD xstartup /home/${VNC_USER}/.vnc/xstartup
+RUN chmod +x /home/${VNC_USER}/.vnc/xstartup && chown -R ${VNC_USER}:${VNC_USER} /home/${VNC_USER}/.vnc
+
+USER ${VNC_USER}
+WORKDIR /home/${VNC_USER}
+CMD /usr/bin/vncserver :1 -name develop -geometry 1280x800 -depth 24 && tail -f /home/apline/.vnc/*:1.log
+
 #RUN chown ubuntu /home/ubuntu/.vnc/passwd
 # RUN chmod 600 /root/.vnc/passwd
 # /etc/tightvncserver.conf
@@ -38,3 +57,4 @@ ENTRYPOINT ["entrypoint.sh"]
 # startlxde <--
 #
 #EXPOSE 5901
+#.sudo_as_admin_successful
