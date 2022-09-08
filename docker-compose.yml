@@ -20,6 +20,7 @@ services:
             - /dev/shm:/dev/shm
             - './tmp/export:/tmp/export'
             - 'chrome_volume:/tmp/chrome'
+            - './tmp/gnote:/home/${VNC_USER:-ubuntu}/.local/share/gnote'
         environment:
             - VNC_PASSWORD=${VNC_PASSWORD:-password}
             - RESOLUTION=${VNC_RESOLUTION:-1920x1080}

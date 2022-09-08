@@ -19,7 +19,7 @@ RUN sed -i "s/\/usr\/bin\/google-chrome-stable.%U/& --user-data-dir=\/tmp\/chrom
 
 # Application
 RUN pkgadd.sh \
-    gnote xpad
+    gnote
 
 ARG VNC_USER=ubuntu
 ARG VNC_PASSWD=password
@@ -38,7 +38,8 @@ RUN groupadd -g 1000 ${VNC_USER} && \
 ADD passwd /home/${VNC_USER}/.vnc/passwd
 RUN chmod 600 /home/${VNC_USER}/.vnc/passwd
 ADD xstartup /home/${VNC_USER}/.vnc/xstartup
-RUN chmod +x /home/${VNC_USER}/.vnc/xstartup && chown -R ${VNC_USER}:${VNC_USER} /home/${VNC_USER}/.vnc
+RUN chmod +x /home/${VNC_USER}/.vnc/xstartup \
+    && chown -R ${VNC_USER}:${VNC_USER} /home/${VNC_USER}/.vnc
 
 USER ${VNC_USER}
 WORKDIR /home/${VNC_USER}
