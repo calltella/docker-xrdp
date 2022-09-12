@@ -7,6 +7,7 @@ services:
             args:
                 - VNC_USER=${VNC_USER:-ubuntu}
                 - VNC_PASSWD=${VNC_PASSWD:-password}
+        entrypoint: "/usr/local/bin/entrypoint-xlde.sh"
         restart: ${DOCKER_RESTART:-no}
         cap_add:
             - SYS_ADMIN
@@ -19,13 +20,12 @@ services:
         volumes:
             - /dev/shm:/dev/shm
             - './tmp/export:/tmp/export'
-            - 'chrome_volume:/tmp/chrome'
+            - 'chrome_volume:/home/${VNC_USER:-ubuntu}/chrome'
             - './tmp/gnote:/home/${VNC_USER:-ubuntu}/.local/share/gnote'
         environment:
-            - VNC_PASSWORD=${VNC_PASSWORD:-password}
-            - RESOLUTION=${VNC_RESOLUTION:-1920x1080}
-            - USER=${VNC_USER:-ubuntu}
-            - PASSWD=${VNC_PASSWD:-password1}
+            - VNC_DISPLAYNAME=${VNC_DISPLAYNAME}
+            - USER=${VNC_USER:-ubuntu} # core
+            - VNC_RESOLUTION=${VNC_RESOLUTION:-1920x1080}
         tty: true
 networks:
     default:

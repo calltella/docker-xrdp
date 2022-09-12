@@ -1,5 +1,9 @@
 FROM tukiyo3/xrdp:core
 
+ARG VNC_USER=ubuntu
+ARG VNC_PASSWD=password
+ENV VNC_HOME=/home/${VNC_USER}/
+
 # LXDE
 RUN pkgadd.sh lxde-core openbox-lxde-session lxterminal
 RUN sed -i -e 's/openbox-session/startlxde/g' /etc/skel/.xsession
@@ -15,14 +19,12 @@ RUN cd /tmp \
     && wget -q --no-check-certificate https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && dpkg -i google-chrome-stable_current_amd64.deb
 
-RUN sed -i "s/\/usr\/bin\/google-chrome-stable.%U/& --user-data-dir=\/tmp\/chrome/g" /usr/share/applications/google-chrome.desktop
+RUN sed -i "s/\/usr\/bin\/google-chrome-stable.%U/& --user-data-dir=\/home\/$VNC_USER\/chrome/g" /usr/share/applications/google-chrome.desktop
 
 # Application
 RUN pkgadd.sh \
     gnote
 
-ARG VNC_USER=ubuntu
-ARG VNC_PASSWD=password
 RUN groupadd -g 1000 ${VNC_USER} && \
     useradd -m -s /bin/bash -u 1000 -g 1000 -G sudo ${VNC_USER} && \
     echo ${VNC_USER}:${VNC_PASSWD} | chpasswd && \
@@ -32,18 +34,34 @@ RUN groupadd -g 1000 ${VNC_USER} && \
 # COPY entrypoint.sh /usr/local/bin/
 # RUN chmod +x /usr/local/bin/entrypoint.sh
 # ENTRYPOINT ["entrypoint.sh"]
-
+RUN ["/bin/bash", "-c", "echo $VNC_HOME"]
 # ADD xstartup /root/.vnc/xstartup
 # USER ${VNC_USER}
-ADD passwd /home/${VNC_USER}/.vnc/passwd
-RUN chmod 600 /home/${VNC_USER}/.vnc/passwd
-ADD xstartup /home/${VNC_USER}/.vnc/xstartup
-RUN chmod +x /home/${VNC_USER}/.vnc/xstartup \
-    && chown -R ${VNC_USER}:${VNC_USER} /home/${VNC_USER}/.vnc
+#RUN mkdir -p ${VNC_HOME}/.local/share
+ADD passwd ${VNC_HOME}/.vnc/passwd
+RUN chmod 600 ${VNC_HOME}/.vnc/passwd
+ADD xstartup ${VNC_HOME}/.vnc/xstartup
+RUN chmod +x ${VNC_HOME}/.vnc/xstartup \
+    && chown -R ${VNC_USER}:${VNC_USER} ${VNC_HOME}
+
+# RUN { \
+# 	echo "Hello"; \
+# 	echo "exec /entrypoint-parent.sh \"\$@\""; \
+#     } >> /usr/local/bin/entrypoint.sh
+
+# Entrypoint を docker-compose.yml で上書き
+ENV USER=${VNC_USER}
+ADD entrypoint-xlde.sh /usr/local/bin/entrypoint-xlde.sh
+RUN chmod +x /usr/local/bin/entrypoint-xlde.sh
 
 USER ${VNC_USER}
-WORKDIR /home/${VNC_USER}
-CMD /usr/bin/vncserver :1 -name develop -geometry 1280x800 -depth 24 && tail -f /home/apline/.vnc/*:1.log
+WORKDIR ${VNC_HOME}
+#CMD /usr/bin/vncserver :1 -name develop -geometry 1280x800 -depth 24 && tail -f /home\/$VNC_USER\/.vnc/*:1.log
+# コンテナ起動時のスクリプト(上書き)
+# COPY entrypoint.sh ${VNC_HOME}/
+# RUN sudo chmod +x ${VNC_HOME}/entrypoint.sh
+#CMD ["/home/apline/entrypoint.sh"]
+# core 側でUSER作成しているのでdocker-compose.yml environment user にユーザセット
 
 #RUN chown ubuntu /home/ubuntu/.vnc/passwd
 # RUN chmod 600 /root/.vnc/passwd
