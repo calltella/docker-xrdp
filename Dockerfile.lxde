@@ -23,7 +23,16 @@ RUN sed -i "s/\/usr\/bin\/google-chrome-stable.%U/& --user-data-dir=\/home\/$VNC
 
 # Application
 RUN pkgadd.sh \
-    gnote
+    gnote bzip2 ubuntu-restricted-extras ffmpeg
+
+# firefox
+# 本来 snap で入れるべきだけど snap がうまく起動しない
+RUN cd /tmp \
+    && wget -q -O firefox-latest.tar.bz2 "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=ja" \
+    && tar jxf firefox-latest.tar.bz2 \
+    && mv firefox /opt \
+    && ln -s /opt/firefox/firefox /usr/local/bin/firefox \
+    && wget -q https://raw.githubusercontent.com/mozilla/sumo-kb/main/install-firefox-linux/firefox.desktop -P /usr/share/applications
 
 RUN groupadd -g 1000 ${VNC_USER} && \
     useradd -m -s /bin/bash -u 1000 -g 1000 -G sudo ${VNC_USER} && \
@@ -39,9 +48,14 @@ RUN ["/bin/bash", "-c", "echo $VNC_HOME"]
 # USER ${VNC_USER}
 #RUN mkdir -p ${VNC_HOME}/.local/share
 ADD passwd ${VNC_HOME}/.vnc/passwd
-RUN chmod 600 ${VNC_HOME}/.vnc/passwd
 ADD xstartup ${VNC_HOME}/.vnc/xstartup
-RUN chmod +x ${VNC_HOME}/.vnc/xstartup \
+RUN \
+    mkdir -p ${VNC_HOME}/.local/share \
+    && mkdir -p ${VNC_HOME}/.mozilla/firefox \
+    && mkdir -p ${VNC_HOME}/chrome \
+    && touch ${VNC_HOME}/.sudo_as_admin_successful \
+    && chmod 600 ${VNC_HOME}/.vnc/passwd \
+    && chmod +x ${VNC_HOME}/.vnc/xstartup \
     && chown -R ${VNC_USER}:${VNC_USER} ${VNC_HOME}
 
 # RUN { \

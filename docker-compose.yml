@@ -12,16 +12,13 @@ services:
         cap_add:
             - SYS_ADMIN
         ports:
-            - ${DOCKER_XRDP_PORT:-3389}:3389
-            - 5900:5900
             - 5901:5901
-            - 5902:5902
-            - 5903:5903
         volumes:
             - /dev/shm:/dev/shm
             - './tmp/export:/tmp/export'
             - 'chrome_volume:/home/${VNC_USER:-ubuntu}/chrome'
             - './tmp/gnote:/home/${VNC_USER:-ubuntu}/.local/share/gnote'
+            - 'firefox_volume:/home/${VNC_USER:-ubuntu}/.mozilla/firefox'
         environment:
             - VNC_DISPLAYNAME=${VNC_DISPLAYNAME}
             - USER=${VNC_USER:-ubuntu} # core
@@ -33,6 +30,7 @@ networks:
         ipam:
             driver: default
             config:
-                - subnet: 192.168.10.0/27
+                - subnet: 192.168.10.32/27
 volumes:
     chrome_volume:
+    firefox_volume:

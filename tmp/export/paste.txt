@@ -1,0 +1,15 @@
+# dircolors -p > ~/.colorrc
+DIR 01;34 36に変更
+
+
+# vi .bachrc
+eval `dircolors -b ~/.colorrc`
+alias ls='ls --color=auto'
+sed -i "s/DIR 01;34/DIR 01;36/" ~/.colorrc
+
+echo "eval `dircolors -b ~/.colorrc`" >> ~/.bashrc
+ubuntu-restricted-extras
+
+
+echo `export LS_COLOR="di=01;36"` >> ~/.bashrc
+echo `export LS_COLORS="di=01;36"` >> ~/.bashrc
